@@ -40,6 +40,7 @@ services:
       - WAZUH_AGENT_NAME=nginx-victim
     volumes:
       - shared_logs:/var/log/nginx
+      - agent_data:/var/ossec/etc
       - ../agent_custom.conf:/var/ossec/etc/ossec.conf
     networks:
       - default # Connects to Wazuh Manager
@@ -55,3 +56,4 @@ networks:
 
 volumes:
   shared_logs:
+  agent_data:
