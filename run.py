@@ -151,13 +151,28 @@ def action_down(root_dir):
     run_command(base_cmd + ["down"], cwd=root_dir)
     log("Lab stopped.", Colors.GREEN)
 
+def action_nuke(root_dir):
+    """Destructive teardown: Removes containers, networks, AND VOLUMES."""
+    print(f"{Colors.FAIL}WARNING: This will wipe all data (Logs, Alerts, Agent Keys).{Colors.RESET}")
+    confirm = input("Are you sure? (y/N): ")
+    
+    if confirm.lower() == 'y':
+        log("Nuking the environment...", Colors.YELLOW)
+        base_cmd = get_compose_base_cmd(root_dir)
+        # -v is the flag that deletes named volumes
+        run_command(base_cmd + ["down", "-v"], cwd=root_dir)
+        log("Environment is clean. All data destroyed.", Colors.GREEN)
+    else:
+        log("Nuke aborted.", Colors.BLUE)
+
 def main():
     # Robustly find the directory where this script lives
     root_dir = pathlib.Path(__file__).resolve().parent
 
     parser = argparse.ArgumentParser(description="Agentic SOC Lab Wrapper")
     parser.add_argument("--setup", action="store_true", help="Generate certs, build, and launch the lab")
-    parser.add_argument("--down", action="store_true", help="Stop the lab")
+    parser.add_argument("--down", action="store_true", help="Stop the lab (keep data)")
+    parser.add_argument("--nuke", action="store_true", help="Stop the lab AND delete all data (Logs, Keys)")
     parser.add_argument("--probe", type=str, help="Run a command: --probe \"service command\"")
     
     args = parser.parse_args()
@@ -170,10 +185,14 @@ def main():
         action_setup(root_dir)
     elif args.down:
         action_down(root_dir)
+    elif args.nuke:
+        action_nuke(root_dir)
     elif args.probe:
         action_probe(root_dir, args.probe)
     else:
         parser.print_help()
 
+if __name__ == "__main__":
+    main()
 if __name__ == "__main__":
     main()
