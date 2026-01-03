@@ -3,7 +3,7 @@ services:
   # 1. THE ATTACKER (Internet Zone)
   # ==========================================
   attacker:
-    image: kalilinux/kali-rolling
+    image: agentic-soc-sim-attacker:latest
     container_name: attacker-c2
     hostname: attacker
     # Keeps the container running so you can exec into it
