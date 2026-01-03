@@ -1,0 +1,57 @@
+services:
+  # ==========================================
+  # 1. THE ATTACKER (Internet Zone)
+  # ==========================================
+  attacker:
+    image: kalilinux/kali-rolling
+    container_name: attacker-c2
+    hostname: attacker
+    # Keeps the container running so you can exec into it
+    command: tail -f /dev/null
+    networks:
+      - internet_net
+
+  # ==========================================
+  # 2. THE VICTIM (Public Zone)
+  # ==========================================
+  infra-web:
+    image: nginx:alpine
+    container_name: victim-web
+    hostname: victim-web
+    restart: always
+    ports:
+      - "80:80" # Exposed to localhost for you to browse
+    volumes:
+      - ./nginx_custom.conf:/etc/nginx/nginx.conf
+      - shared_logs:/var/log/nginx
+    networks:
+      - internet_net
+
+  # ==========================================
+  # 3. THE SIDE-CAR AGENT (Secure Zone)
+  # ==========================================
+  wazuh-sidecar:
+    image: wazuh/wazuh-agent:4.14.1
+    container_name: victim-agent
+    hostname: victim-agent
+    restart: always
+    environment:
+      - WAZUH_MANAGER=wazuh.manager
+      - WAZUH_AGENT_NAME=nginx-victim
+    volumes:
+      - shared_logs:/var/log/nginx
+      - ./agent_custom.conf:/var/ossec/etc/ossec.conf
+    networks:
+      - default # Connects to Wazuh Manager
+    depends_on:
+      - wazuh.manager
+
+# ==========================================
+# NETWORKS
+# ==========================================
+networks:
+  internet_net:
+    driver: bridge
+
+volumes:
+  shared_logs:
