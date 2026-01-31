@@ -15,14 +15,14 @@ services:
   # 2. THE VICTIM (Public Zone)
   # ==========================================
   infra-web:
-    image: nginx:alpine
+    build: ../victim-web
     container_name: victim-web
     hostname: victim-web
     restart: always
     ports:
       - "80:80" # Exposed to localhost for you to browse
     volumes:
-      - ../nginx_custom.conf:/etc/nginx/nginx.conf
+      - ../victim-web/nginx_custom.conf:/etc/nginx/nginx.conf
       - shared_logs:/var/log/nginx
     networks:
       - internet_net
@@ -42,6 +42,23 @@ services:
       - shared_logs:/var/log/nginx
       - agent_data:/var/ossec/etc
       - ../agent_custom.conf:/var/ossec/etc/ossec.conf
+    networks:
+      - default # Connects to Wazuh Manager
+    depends_on:
+      - wazuh.manager
+
+  # ==========================================
+  # 4. MITIGATION ENGINE (Secure Zone)
+  # ==========================================
+  mitigation-engine:
+    build: ../mitigation-engine
+    container_name: mitigation-engine
+    hostname: mitigation-engine
+    restart: always
+    ports:
+      - "5001:5001" # Expose Flask app port
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY} # Passed from host environment
     networks:
       - default # Connects to Wazuh Manager
     depends_on:
