@@ -1,0 +1,10 @@
+<group name="nginx,json,">
+
+  <rule id="100100" level="5">
+    <field name="location" type="pcre2">/var/log/nginx/access\.log$</field>
+    <field name="data.status">^4\d\d$</field>
+    <description>Nginx: Web server 4xx error code (Custom Rule).</description>
+    <group>web,accesslog,attack,</group>
+  </rule>
+
+</group>
